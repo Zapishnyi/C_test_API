@@ -1,4 +1,4 @@
-namespace MyApp.Models;
+namespace MyApp.Models.DTOs;
 
 public class CreateUserRequest
 {

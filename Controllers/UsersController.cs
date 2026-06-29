@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using MyApp.Models;
+using MyApp.Models.DTOs;
 using MyApp.Repositories;
+using UserEntity = MyApp.Models.Entities.User;
 
 namespace MyApp.Controllers;
 
@@ -15,17 +16,15 @@ public class UsersController : ControllerBase
         _repo = repo;
     }
 
-    // GET /api/users
     [HttpGet]
-    public async Task<ActionResult<List<User>>> GetAll()
+    public async Task<ActionResult<List<UserEntity>>> GetAll()
     {
         var users = await _repo.GetAllAsync();
         return Ok(users);
     }
 
-    // GET /api/users/{id}
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetById(int id)
+    public async Task<ActionResult<UserEntity>> GetById(int id)
     {
         var user = await _repo.GetByIdAsync(id);
         if (user == null)
@@ -33,18 +32,13 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
-    // POST /api/users
     [HttpPost]
-    public async Task<ActionResult<User>> Create([FromBody] CreateUserRequest request)
+    public async Task<ActionResult<UserEntity>> Create([FromBody] CreateUserRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Email))
             return BadRequest(new { message = "Name and Email are required" });
 
-        var user = new User
-        {
-            Name = request.Name,
-            Email = request.Email
-        };
+        var user = new UserEntity { Name = request.Name, Email = request.Email };
 
         try
         {
@@ -54,11 +48,12 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return Conflict(new { message = $"Email '{request.Email}' already exists", error = ex.Message });
+            return Conflict(
+                new { message = $"Email '{request.Email}' already exists", error = ex.Message }
+            );
         }
     }
 
-    // PUT /api/users/{id}
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, [FromBody] CreateUserRequest request)
     {
@@ -81,11 +76,12 @@ public class UsersController : ControllerBase
         }
         catch (Exception ex)
         {
-            return Conflict(new { message = $"Email '{request.Email}' already exists", error = ex.Message });
+            return Conflict(
+                new { message = $"Email '{request.Email}' already exists", error = ex.Message }
+            );
         }
     }
 
-    // DELETE /api/users/{id}
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {

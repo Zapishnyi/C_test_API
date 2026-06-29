@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyApp.Data;
-using MyApp.Models;
+using MyApp.Models.Entities;
 
 namespace MyApp.Repositories;
 
@@ -44,6 +44,7 @@ public class UserRepository
 
         existing.Name = user.Name;
         existing.Email = user.Email;
+
         await _db.SaveChangesAsync();
         return true;
     }

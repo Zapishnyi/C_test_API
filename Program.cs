@@ -2,25 +2,19 @@
 using MyApp.Data;
 using MyApp.Repositories;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Load environment variables from .env file
 DotNetEnv.Env.Load();
 
-// Add services
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+var builder = WebApplication.CreateBuilder(args);
 
-// Register EF Core with PostgreSQL
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
+
 var connectionString = DotNetEnv.Env.GetString("DATABASE_URL");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
-
-// Register UserRepository
 builder.Services.AddScoped<UserRepository>();
 
 var app = builder.Build();
 
-// Auto-create the users table on startup
 using (var scope = app.Services.CreateScope())
 {
     var repo = scope.ServiceProvider.GetRequiredService<UserRepository>();
@@ -28,21 +22,16 @@ using (var scope = app.Services.CreateScope())
     Console.WriteLine("Users table ready.");
 }
 
-// Configure pipeline
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.MapOpenApi();
-}
+    options.RoutePrefix = "api-docs";
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API");
+});
 
 app.MapControllers();
 
 Console.WriteLine("API is running at http://localhost:5000");
-Console.WriteLine("Swagger docs at http://localhost:5000/openapi/v1.json");
-Console.WriteLine("Endpoints:");
-Console.WriteLine("  GET    /api/users       - List all users");
-Console.WriteLine("  GET    /api/users/{id}  - Get user by ID");
-Console.WriteLine("  POST   /api/users       - Create user");
-Console.WriteLine("  PUT    /api/users/{id}  - Update user");
-Console.WriteLine("  DELETE /api/users/{id}  - Delete user");
+Console.WriteLine("Swagger docs at http://localhost:5000/api-docs");
 
 app.Run();
