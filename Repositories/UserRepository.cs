@@ -30,7 +30,7 @@ public class UserRepository
         return await _db.Users.OrderBy(u => u.Id).ToListAsync();
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         return await _db.Users.FindAsync(id);
     }
@@ -48,7 +48,7 @@ public class UserRepository
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var user = await _db.Users.FindAsync(id);
         if (user == null)

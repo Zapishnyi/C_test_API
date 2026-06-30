@@ -26,7 +26,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetById(int id)
+    public async Task<ActionResult<User>> GetById(Guid id)
     {
         var user = await _repo.GetByIdAsync(id);
         if (user == null)
@@ -52,7 +52,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(int id, [FromBody] CreateUserRequest request)
+    public async Task<ActionResult> Update(Guid id, [FromBody] CreateUserRequest request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -80,7 +80,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(Guid id)
     {
         var success = await _repo.DeleteAsync(id);
         if (!success)
