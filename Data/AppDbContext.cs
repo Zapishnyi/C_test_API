@@ -16,8 +16,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("users");
 
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(e => e.Id).HasColumnName("id").HasDefaultValueSql("gen_random_uuid()");
 
             entity.Property(e => e.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
 

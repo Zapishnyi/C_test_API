@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyApp.Models.DTOs;
+using MyApp.Models.Entities;
 using MyApp.Repositories;
-using UserEntity = MyApp.Models.Entities.User;
+using Npgsql;
 
 namespace MyApp.Controllers;
 
@@ -17,14 +19,14 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<UserEntity>>> GetAll()
+    public async Task<ActionResult<List<User>>> GetAll()
     {
         var users = await _repo.GetAllAsync();
         return Ok(users);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<UserEntity>> GetById(int id)
+    public async Task<ActionResult<User>> GetById(int id)
     {
         var user = await _repo.GetByIdAsync(id);
         if (user == null)
@@ -33,32 +35,27 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserEntity>> Create([FromBody] CreateUserRequest request)
+    public async Task<ActionResult<User>> Create([FromBody] CreateUserRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "Name and Email are required" });
-
-        var user = new UserEntity { Name = request.Name, Email = request.Email };
+        var user = new User { Name = request.Name, Email = request.Email };
 
         try
         {
-            var id = await _repo.CreateAsync(user);
-            user.Id = id;
-            return CreatedAtAction(nameof(GetById), new { id }, user);
+            var createdUser = await _repo.CreateAsync(user);
+            return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
+            when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
         {
-            return Conflict(
-                new { message = $"Email '{request.Email}' already exists", error = ex.Message }
-            );
+            return Conflict(new { message = $"Email '{request.Email}' already exists" });
         }
     }
 
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, [FromBody] CreateUserRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "Name and Email are required" });
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var existing = await _repo.GetByIdAsync(id);
         if (existing == null)

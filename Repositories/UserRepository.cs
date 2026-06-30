@@ -18,12 +18,11 @@ public class UserRepository
         await _db.Database.EnsureCreatedAsync();
     }
 
-    public async Task<int> CreateAsync(User user)
+    public async Task<User> CreateAsync(User user)
     {
-        user.CreatedAt = DateTime.UtcNow;
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
-        return user.Id;
+        return user;
     }
 
     public async Task<List<User>> GetAllAsync()
