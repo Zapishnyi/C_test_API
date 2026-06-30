@@ -13,11 +13,6 @@ public class UserRepository
         _db = db;
     }
 
-    public async Task CreateTableIfNotExistsAsync()
-    {
-        await _db.Database.EnsureCreatedAsync();
-    }
-
     public async Task<User> CreateAsync(User user)
     {
         _db.Users.Add(user);

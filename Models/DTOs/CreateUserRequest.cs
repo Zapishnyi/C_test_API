@@ -12,3 +12,10 @@ public class CreateUserRequest
     [EmailAddress]
     public string Email { get; set; } = null!;
 }
+
+public class CreatePostRequest
+{
+    [Required]
+    [MinLength(1)]
+    public string Content { get; set; } = null!;
+}

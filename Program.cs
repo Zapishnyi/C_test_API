@@ -5,6 +5,10 @@ using MyApp.Repositories;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
@@ -14,11 +18,12 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connect
 builder.Services.AddScoped<UserRepository>();
 
 var app = builder.Build();
+app.UseHttpsRedirection();
+app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
     var repo = scope.ServiceProvider.GetRequiredService<UserRepository>();
-    await repo.CreateTableIfNotExistsAsync();
     Console.WriteLine("Users table ready.");
 }
 
@@ -28,6 +33,15 @@ app.UseSwaggerUI(options =>
     options.RoutePrefix = "api-docs";
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API");
 });
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    await db.Database.MigrateAsync();
+}
 
 app.MapControllers();
 
