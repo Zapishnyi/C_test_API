@@ -20,14 +20,16 @@ public class PostRepository
         return post;
     }
 
-    public async Task<List<Post>> GetAllAsync()
+    public async Task<List<Post>> GetAllAsync(Guid userId)
     {
-        return await _db.Posts.OrderBy(p => p.Id).ToListAsync();
+        return await _db.Posts.Where(p => p.UserId == userId).OrderBy(p => p.Id).ToListAsync();
     }
 
-    public async Task<Post?> GetByIdAsync(Guid id)
+    public async Task<Post?> GetByIdAsync(Guid userId, Guid postId)
     {
-        return await _db.Posts.FindAsync(id);
+        return await _db
+            .Posts.Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.Id == postId && p.UserId == userId);
     }
 
     public async Task<bool> UpdateAsync(Post post)

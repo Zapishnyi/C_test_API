@@ -1,3 +1,4 @@
+using Helpers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyApp.Models.DTOs;
@@ -8,7 +9,7 @@ using Npgsql;
 namespace MyApp.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users/{userId}/posts")]
 public class PostsController : ControllerBase
 {
     private readonly PostRepository _repo;
@@ -19,32 +20,66 @@ public class PostsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Post>>> GetAll()
+    public async Task<ActionResult<List<PostDtoRes>>> GetAll(Guid userId)
     {
-        var posts = await _repo.GetAllAsync();
-        return Ok(posts);
+        var posts = await _repo.GetAllAsync(userId);
+        var postDtos = posts.Select(ToDto.Post).ToList();
+        return Ok(postDtos);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Post>> GetById(Guid id)
+    [HttpGet("{postId}")]
+    public async Task<ActionResult<PostDtoRes>> GetById(Guid userId, Guid postId)
     {
-        var post = await _repo.GetByIdAsync(id);
+        var post = await _repo.GetByIdAsync(userId, postId);
         if (post == null)
-            return NotFound(new { message = $"Post with id {id} not found" });
-        return Ok(post);
+            return NotFound(new { message = $"Post with id {postId} not found" });
+        return Ok(ToDto.Post(post));
     }
 
     [HttpPost]
-    public async Task<ActionResult<Post>> Create([FromBody] CreatePostRequest request)
+    public async Task<ActionResult<PostDtoRes>> Create(Guid userId, [FromBody] PostDtoReq request)
     {
         var post = new Post
         {
             Content = request.Content,
+            UserId = userId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
 
         var createdPost = await _repo.CreateAsync(post);
-        return CreatedAtAction(nameof(GetById), new { id = createdPost.Id }, createdPost);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { postId = createdPost.Id, userId },
+            ToDto.Post(createdPost)
+        );
+    }
+
+    [HttpPut("{postId}")]
+    public async Task<ActionResult> Update(Guid userId, Guid postId, [FromBody] PostDtoReq request)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var existing = await _repo.GetByIdAsync(userId, postId);
+        if (existing == null)
+            return NotFound(new { message = $"Post with id {postId} not found" });
+
+        existing.Content = request.Content;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _repo.UpdateAsync(existing);
+        return NoContent();
+    }
+
+    [HttpDelete("{postId}")]
+    public async Task<ActionResult> Delete(Guid userId, Guid postId)
+    {
+        var existing = await _repo.GetByIdAsync(userId, postId);
+        if (existing == null)
+            return NotFound(new { message = $"Post with id {postId} not found" });
+
+        await _repo.DeleteAsync(postId);
+        return NoContent();
     }
 }

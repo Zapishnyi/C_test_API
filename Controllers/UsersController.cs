@@ -8,7 +8,7 @@ using Npgsql;
 namespace MyApp.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UsersController : ControllerBase
 {
     private readonly UserRepository _repo;
@@ -25,24 +25,24 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetById(Guid id)
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<User>> GetById(Guid userId)
     {
-        var user = await _repo.GetByIdAsync(id);
+        var user = await _repo.GetByIdAsync(userId);
         if (user == null)
-            return NotFound(new { message = $"User with id {id} not found" });
+            return NotFound(new { message = $"User with id {userId} not found" });
         return Ok(user);
     }
 
     [HttpPost]
-    public async Task<ActionResult<User>> Create([FromBody] CreateUserRequest request)
+    public async Task<ActionResult<User>> Create([FromBody] UserDtoReq request)
     {
         var user = new User { Name = request.Name, Email = request.Email };
 
         try
         {
             var createdUser = await _repo.CreateAsync(user);
-            return CreatedAtAction(nameof(GetById), new { id = createdUser.Id }, createdUser);
+            return CreatedAtAction(nameof(GetById), new { userId = createdUser.Id }, createdUser);
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
@@ -51,15 +51,15 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<ActionResult> Update(Guid id, [FromBody] CreateUserRequest request)
+    [HttpPut("{userId}")]
+    public async Task<ActionResult> Update(Guid userId, [FromBody] UserDtoReq request)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var existing = await _repo.GetByIdAsync(id);
+        var existing = await _repo.GetByIdAsync(userId);
         if (existing == null)
-            return NotFound(new { message = $"User with id {id} not found" });
+            return NotFound(new { message = $"User with id {userId} not found" });
 
         existing.Name = request.Name;
         existing.Email = request.Email;
@@ -68,7 +68,7 @@ public class UsersController : ControllerBase
         {
             var success = await _repo.UpdateAsync(existing);
             if (!success)
-                return NotFound(new { message = $"User with id {id} not found" });
+                return NotFound(new { message = $"User with id {userId} not found" });
             return Ok(existing);
         }
         catch (Exception ex)
@@ -79,14 +79,14 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{userId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid userId)
     {
-        var success = await _repo.DeleteAsync(id);
+        var success = await _repo.DeleteAsync(userId);
         if (!success)
-            return NotFound(new { message = $"User with id {id} not found" });
+            return NotFound(new { message = $"User with id {userId} not found" });
         return NoContent();
     }
 }
