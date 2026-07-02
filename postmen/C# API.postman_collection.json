@@ -8,220 +8,417 @@
   },
   "item": [
     {
-      "name": "Get users",
-      "event": [
+      "name": "Users",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/info?id=1",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "info"
-          ],
-          "query": [
+          "name": "Get users",
+          "event": [
             {
-              "key": "id",
-              "value": "1"
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
             }
-          ]
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/info?id=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "info"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Returns a list of all users."
+          },
+          "response": []
         },
-        "description": "Returns a list of all users."
-      },
-      "response": []
+        {
+          "name": "Get user by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Returns a single user by their ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful POST request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\"\n\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            },
+            "description": "Creates a new user."
+          },
+          "response": []
+        },
+        {
+          "name": "Update user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful PUT request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Updates an existing user by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete user",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful DELETE request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Deletes a user by ID."
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "Get user by ID",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{host}}/api/users/:id",
-          "host": [
-            "{{host}}"
-          ],
-          "path": [
-            "api",
-            "users",
-            ":id"
-          ],
-          "variable": [
-            {
-              "key": "id"
-            }
-          ]
-        },
-        "description": "Returns a single user by their ID."
-      },
-      "response": []
-    },
-    {
-      "name": "Create user",
-      "event": [
+      "name": "Posts",
+      "item": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful POST request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {},
-            "requests": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n\t\"name\": \"{{$randomFullName}}\",\n    \"email\": \"{{$randomEmail}}\"\n\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
+          "name": "Get user's posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Returns a single user by their ID."
+          },
+          "response": []
         },
-        "url": {
-          "raw": "{{host}}/api/users",
-          "host": [
-            "{{host}}"
-          ],
-          "path": [
-            "api",
-            "users"
-          ]
-        },
-        "description": "Creates a new user."
-      },
-      "response": []
-    },
-    {
-      "name": "Update user",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful PUT request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{host}}/api/users/:id",
-          "host": [
-            "{{host}}"
-          ],
-          "path": [
-            "api",
-            "users",
-            ":id"
-          ],
-          "query": [
+          "name": "Create user's post",
+          "event": [
             {
-              "key": "id",
-              "value": "1",
-              "disabled": true
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful POST request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
             }
           ],
-          "variable": [
-            {
-              "key": "id"
-            }
-          ]
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"content\": \"{{$randomLoremText}}\"\n   }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users/:userId/posts",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":userId",
+                "posts"
+              ],
+              "variable": [
+                {
+                  "key": "userId",
+                  "value": "2fb1bafc-eee2-4cac-ad98-df9a5bb09781"
+                }
+              ]
+            },
+            "description": "Creates a new user."
+          },
+          "response": []
         },
-        "description": "Updates an existing user by ID."
-      },
-      "response": []
-    },
-    {
-      "name": "Delete user",
-      "event": [
         {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Successful DELETE request\", function () {",
-              "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript"
-          }
+          "name": "Update user's post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful PUT request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\t\"name\": \"Add your name in the body\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Updates an existing user by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete user's post",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Successful DELETE request\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 202, 204]);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{host}}/api/users/:id",
+              "host": [
+                "{{host}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                ":id"
+              ],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "disabled": true
+                }
+              ],
+              "variable": [
+                {
+                  "key": "id"
+                }
+              ]
+            },
+            "description": "Deletes a user by ID."
+          },
+          "response": []
         }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{host}}/api/users/:id",
-          "host": [
-            "{{host}}"
-          ],
-          "path": [
-            "api",
-            "users",
-            ":id"
-          ],
-          "query": [
-            {
-              "key": "id",
-              "value": "1",
-              "disabled": true
-            }
-          ],
-          "variable": [
-            {
-              "key": "id"
-            }
-          ]
-        },
-        "description": "Deletes a user by ID."
-      },
-      "response": []
+      ]
     }
   ],
   "event": [
