@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MyApp.Config;
 using MyApp.Data;
 using MyApp.Repositories;
 
-DotNetEnv.Env.Load();
+// Load and initialize AppConfig singleton (loads .env file internally)
+_ = AppConfig.Instance;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
@@ -10,8 +12,10 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 
-var connectionString = DotNetEnv.Env.GetString("DATABASE_URL");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(AppConfig.Instance.DatabaseUrl)
+);
+
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<PostRepository>();
 

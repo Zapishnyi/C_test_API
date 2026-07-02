@@ -1,10 +1,8 @@
 using Helpers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyApp.Models.DTOs;
 using MyApp.Models.Entities;
 using MyApp.Repositories;
-using Npgsql;
 
 namespace MyApp.Controllers;
 

@@ -4,20 +4,19 @@ using MyApp.Models.Entities;
 
 namespace MyApp.Repositories;
 
-public class UserRepository
+public class UserRepository : BaseRepository
 {
-    private readonly AppDbContext _db;
-
     public UserRepository(AppDbContext db)
-    {
-        _db = db;
-    }
+        : base(db) { }
 
     public async Task<User> CreateAsync(User user)
     {
-        _db.Users.Add(user);
-        await _db.SaveChangesAsync();
-        return user;
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+            return user;
+        });
     }
 
     public async Task<List<User>> GetAllAsync()
@@ -32,25 +31,31 @@ public class UserRepository
 
     public async Task<bool> UpdateAsync(User user)
     {
-        var existing = await _db.Users.FindAsync(user.Id);
-        if (existing == null)
-            return false;
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            var existing = await _db.Users.FindAsync(user.Id);
+            if (existing == null)
+                return false;
 
-        existing.Name = user.Name;
-        existing.Email = user.Email;
+            existing.Name = user.Name;
+            existing.Email = user.Email;
 
-        await _db.SaveChangesAsync();
-        return true;
+            await _db.SaveChangesAsync();
+            return true;
+        });
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var user = await _db.Users.FindAsync(id);
-        if (user == null)
-            return false;
+        return await ExecuteInTransactionAsync(async () =>
+        {
+            var user = await _db.Users.FindAsync(id);
+            if (user == null)
+                return false;
 
-        _db.Users.Remove(user);
-        await _db.SaveChangesAsync();
-        return true;
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync();
+            return true;
+        });
     }
 }
