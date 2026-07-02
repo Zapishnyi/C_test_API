@@ -1,8 +1,6 @@
-using Helpers;
 using Microsoft.AspNetCore.Mvc;
 using MyApp.Models.DTOs;
-using MyApp.Models.Entities;
-using MyApp.Repositories;
+using MyApp.Services;
 
 namespace MyApp.Controllers;
 
@@ -10,46 +8,37 @@ namespace MyApp.Controllers;
 [Route("api/users/{userId}/posts")]
 public class PostsController : ControllerBase
 {
-    private readonly PostRepository _repo;
+    private readonly PostService _service;
 
-    public PostsController(PostRepository repo)
+    public PostsController(PostService service)
     {
-        _repo = repo;
+        _service = service;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<PostDtoRes>>> GetAll(Guid userId)
     {
-        var posts = await _repo.GetAllAsync(userId);
-        var postDtos = posts.Select(ToDto.Post).ToList();
-        return Ok(postDtos);
+        var posts = await _service.GetAllAsync(userId);
+        return Ok(posts);
     }
 
     [HttpGet("{postId}")]
     public async Task<ActionResult<PostDtoRes>> GetById(Guid userId, Guid postId)
     {
-        var post = await _repo.GetByIdAsync(userId, postId);
+        var post = await _service.GetByIdAsync(userId, postId);
         if (post == null)
             return NotFound(new { message = $"Post with id {postId} not found" });
-        return Ok(ToDto.Post(post));
+        return Ok(post);
     }
 
     [HttpPost]
     public async Task<ActionResult<PostDtoRes>> Create(Guid userId, [FromBody] PostDtoReq request)
     {
-        var post = new Post
-        {
-            Content = request.Content,
-            UserId = userId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-        };
-
-        var createdPost = await _repo.CreateAsync(post);
+        var createdPost = await _service.CreateAsync(userId, request);
         return CreatedAtAction(
             nameof(GetById),
             new { postId = createdPost.Id, userId },
-            ToDto.Post(createdPost)
+            createdPost
         );
     }
 
@@ -59,25 +48,28 @@ public class PostsController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var existing = await _repo.GetByIdAsync(userId, postId);
-        if (existing == null)
-            return NotFound(new { message = $"Post with id {postId} not found" });
-
-        existing.Content = request.Content;
-        existing.UpdatedAt = DateTime.UtcNow;
-
-        await _repo.UpdateAsync(existing);
-        return NoContent();
+        try
+        {
+            await _service.UpdateAsync(userId, postId, request);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{postId}")]
     public async Task<ActionResult> Delete(Guid userId, Guid postId)
     {
-        var existing = await _repo.GetByIdAsync(userId, postId);
-        if (existing == null)
-            return NotFound(new { message = $"Post with id {postId} not found" });
-
-        await _repo.DeleteAsync(postId);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(userId, postId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

@@ -2,11 +2,15 @@
 using MyApp.Config;
 using MyApp.Data;
 using MyApp.Repositories;
+using MyApp.Services;
 
-// Load and initialize AppConfig singleton (loads .env file internally)
-_ = AppConfig.Instance;
+var host = AppConfig.Instance.Host;
+var port = AppConfig.Instance.Port;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseUrls($"http://{host}:{port}");
+
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 builder.Services.AddControllers();
@@ -18,6 +22,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<PostRepository>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PostService>();
 
 var app = builder.Build();
 app.MapControllers();
@@ -49,7 +55,7 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API");
 });
 
-Console.WriteLine("API is running at http://localhost:5000");
-Console.WriteLine("Swagger docs at http://localhost:5000/api-docs");
+Console.WriteLine($"API is running at http://{host}:{port}");
+Console.WriteLine($"Swagger docs at http://{host}:{port}/api-docs");
 
 app.Run();

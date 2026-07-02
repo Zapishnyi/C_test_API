@@ -42,6 +42,12 @@ public class AppConfig
     /// <summary>ASP.NET Core environment name (Development, Production, etc.).</summary>
     public string AspnetcoreEnvironment { get; }
 
+    /// <summary>Host address to bind the web server to.</summary>
+    public string Host { get; }
+
+    /// <summary>Port number to bind the web server to.</summary>
+    public int Port { get; }
+
     private AppConfig()
     {
         DatabaseUrl = DotNetEnv.Env.GetString("DATABASE_URL");
@@ -52,5 +58,8 @@ public class AppConfig
             "ReadCommitted"
         );
         TransactionIsolationLevel = Enum.Parse<IsolationLevel>(isolationLevelStr, ignoreCase: true);
+
+        Host = DotNetEnv.Env.GetString("HOST", "localhost");
+        Port = DotNetEnv.Env.GetInt("PORT", 5000);
     }
 }

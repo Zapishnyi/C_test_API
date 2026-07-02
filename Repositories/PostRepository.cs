@@ -11,12 +11,9 @@ public class PostRepository : BaseRepository
 
     public async Task<Post> CreateAsync(Post post)
     {
-        return await ExecuteInTransactionAsync(async () =>
-        {
-            _db.Posts.Add(post);
-            await _db.SaveChangesAsync();
-            return post;
-        });
+        _db.Posts.Add(post);
+        await _db.SaveChangesAsync();
+        return post;
     }
 
     public async Task<List<Post>> GetAllAsync(Guid userId)
@@ -33,31 +30,25 @@ public class PostRepository : BaseRepository
 
     public async Task<bool> UpdateAsync(Post post)
     {
-        return await ExecuteInTransactionAsync(async () =>
-        {
-            var existing = await _db.Posts.FindAsync(post.Id);
-            if (existing == null)
-                return false;
+        var existing = await _db.Posts.FindAsync(post.Id);
+        if (existing == null)
+            return false;
 
-            existing.Content = post.Content;
-            existing.UpdatedAt = DateTime.UtcNow;
+        existing.Content = post.Content;
+        existing.UpdatedAt = DateTime.UtcNow;
 
-            await _db.SaveChangesAsync();
-            return true;
-        });
+        await _db.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        return await ExecuteInTransactionAsync(async () =>
-        {
-            var post = await _db.Posts.FindAsync(id);
-            if (post == null)
-                return false;
+        var post = await _db.Posts.FindAsync(id);
+        if (post == null)
+            return false;
 
-            _db.Posts.Remove(post);
-            await _db.SaveChangesAsync();
-            return true;
-        });
+        _db.Posts.Remove(post);
+        await _db.SaveChangesAsync();
+        return true;
     }
 }

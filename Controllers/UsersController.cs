@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using MyApp.Models.DTOs;
 using MyApp.Models.Entities;
-using MyApp.Repositories;
-using Npgsql;
+using MyApp.Services;
 
 namespace MyApp.Controllers;
 
@@ -11,24 +9,24 @@ namespace MyApp.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    private readonly UserRepository _repo;
+    private readonly UserService _service;
 
-    public UsersController(UserRepository repo)
+    public UsersController(UserService service)
     {
-        _repo = repo;
+        _service = service;
     }
 
     [HttpGet]
     public async Task<ActionResult<List<User>>> GetAll()
     {
-        var users = await _repo.GetAllAsync();
+        var users = await _service.GetAllAsync();
         return Ok(users);
     }
 
     [HttpGet("{userId}")]
     public async Task<ActionResult<User>> GetById(Guid userId)
     {
-        var user = await _repo.GetByIdAsync(userId);
+        var user = await _service.GetByIdAsync(userId);
         if (user == null)
             return NotFound(new { message = $"User with id {userId} not found" });
         return Ok(user);
@@ -37,17 +35,14 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<User>> Create([FromBody] UserDtoReq request)
     {
-        var user = new User { Name = request.Name, Email = request.Email };
-
         try
         {
-            var createdUser = await _repo.CreateAsync(user);
+            var createdUser = await _service.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { userId = createdUser.Id }, createdUser);
         }
-        catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+        catch (InvalidOperationException ex)
         {
-            return Conflict(new { message = $"Email '{request.Email}' already exists" });
+            return Conflict(new { message = ex.Message });
         }
     }
 
@@ -57,25 +52,18 @@ public class UsersController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var existing = await _repo.GetByIdAsync(userId);
-        if (existing == null)
-            return NotFound(new { message = $"User with id {userId} not found" });
-
-        existing.Name = request.Name;
-        existing.Email = request.Email;
-
         try
         {
-            var success = await _repo.UpdateAsync(existing);
-            if (!success)
-                return NotFound(new { message = $"User with id {userId} not found" });
-            return Ok(existing);
+            var user = await _service.UpdateAsync(userId, request);
+            return Ok(user);
         }
-        catch (Exception ex)
+        catch (KeyNotFoundException ex)
         {
-            return Conflict(
-                new { message = $"Email '{request.Email}' already exists", error = ex.Message }
-            );
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
     }
 
@@ -84,9 +72,14 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(Guid userId)
     {
-        var success = await _repo.DeleteAsync(userId);
-        if (!success)
-            return NotFound(new { message = $"User with id {userId} not found" });
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(userId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

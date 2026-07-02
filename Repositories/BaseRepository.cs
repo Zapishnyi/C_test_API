@@ -34,10 +34,11 @@ public abstract class BaseRepository
     }
 
     /// <summary>
-    /// Executes the given operation within a transaction. If the operation succeeds,
+    /// Executes the given operation within a new transaction. If the operation succeeds,
     /// the transaction is committed; otherwise it is rolled back.
+    /// Use this to combine multiple repository operations in a single transaction.
     /// </summary>
-    protected async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation)
+    public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation)
     {
         await using var transaction = await BeginTransactionAsync();
         try
@@ -54,10 +55,11 @@ public abstract class BaseRepository
     }
 
     /// <summary>
-    /// Executes the given operation within a transaction. If the operation succeeds,
+    /// Executes the given operation within a new transaction. If the operation succeeds,
     /// the transaction is committed; otherwise it is rolled back.
+    /// Use this to combine multiple repository operations in a single transaction.
     /// </summary>
-    protected async Task ExecuteInTransactionAsync(Func<Task> operation)
+    public async Task ExecuteInTransactionAsync(Func<Task> operation)
     {
         await using var transaction = await BeginTransactionAsync();
         try
@@ -70,5 +72,44 @@ public abstract class BaseRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    /// <summary>
+    /// Executes the given operation using an existing transaction.
+    /// If no transaction is provided, creates a new one.
+    /// Use this to combine multiple repository operations in a single transaction
+    /// by passing the same transaction across calls.
+    /// </summary>
+    public async Task<T> ExecuteWithTransactionAsync<T>(
+        IDbContextTransaction? transaction,
+        Func<Task<T>> operation
+    )
+    {
+        if (transaction is not null)
+        {
+            return await operation();
+        }
+
+        return await ExecuteInTransactionAsync(operation);
+    }
+
+    /// <summary>
+    /// Executes the given operation using an existing transaction.
+    /// If no transaction is provided, creates a new one.
+    /// Use this to combine multiple repository operations in a single transaction
+    /// by passing the same transaction across calls.
+    /// </summary>
+    public async Task ExecuteWithTransactionAsync(
+        IDbContextTransaction? transaction,
+        Func<Task> operation
+    )
+    {
+        if (transaction is not null)
+        {
+            await operation();
+            return;
+        }
+
+        await ExecuteInTransactionAsync(operation);
     }
 }
